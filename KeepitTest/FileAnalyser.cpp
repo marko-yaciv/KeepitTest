@@ -1,6 +1,5 @@
 #include "FileAnalyser.h"
 #include "TextParser.h"
-#include "thread_pool.h"
 #include <thread>
 #include <fstream>
 
@@ -41,8 +40,6 @@ uint64_t FileAnalyser::ProcessFile()
 	}
 
 	std::vector<std::thread> threads;
-	//dp::thread_pool pool(std::thread::hardware_concurrency());
-	//std::vector<std::future<void>> res;
 	while(true) {
 		std::vector<char> buffer(m_chunkSize);
 		file.read(buffer.data(), m_chunkSize);
@@ -50,8 +47,9 @@ uint64_t FileAnalyser::ProcessFile()
 		if (!file.good()) break;
 
 		auto lastSpaceIt = std::find_if(buffer.rbegin(), buffer.rend(),
-			[](char c) { return std::isspace(c); });
-		
+			[](char c) { 
+				return std::isspace(c); 
+			});
 		std::size_t newChunkSize = lastSpaceIt == buffer.rbegin() ? m_chunkSize : std::distance(lastSpaceIt, buffer.rend());
 		
 		if(newChunkSize != m_chunkSize) {
@@ -59,8 +57,7 @@ uint64_t FileAnalyser::ProcessFile()
 			int a = file.tellg();
 			file.seekg(newChunkSize - m_chunkSize, std::ios::cur);
 		}
-		// auto task = [this](std::vector<char> buffer) { this->m_parser->Parse(std::move(buffer)); };
-		// res.push_back(pool.enqueue(task, std::move(buffer)));
+
 		threads.emplace_back(std::thread(&TextParser::Parse, m_parser.get(), std::move(buffer)));
 	}
 
@@ -69,7 +66,6 @@ uint64_t FileAnalyser::ProcessFile()
 	for (auto& f : threads) {
 		f.join();
 	}
-	
-	// m_parser->ExportWordsMap();
+
 	return m_parser->GetWordsCount();
 }
