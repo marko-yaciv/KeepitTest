@@ -1,7 +1,6 @@
 #pragma once
 #include <filesystem>
-
-class TextParser;
+#include "TextParser.h"
 
 class FileAnalyser
 {
@@ -16,8 +15,8 @@ private:
 
 private:
 	const std::filesystem::path m_filePath;
-	unsigned m_threadCount;
-	const size_t m_defaultChunkSize{ 0x20000000 }; //Minimum chunk size is 1gb 
+	//Default chunk size is 512mb. Adjust for better perfomance due to disk read speed and heap size.
+	const size_t m_defaultChunkSize{ 0x2000000 };
 	size_t m_chunkSize;
 
 	std::unique_ptr<TextParser> m_parser;

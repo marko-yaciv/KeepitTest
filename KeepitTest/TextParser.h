@@ -13,7 +13,7 @@ public:
 	
 	uint64_t GetWordsCount();
 private:
-	void SetWordCount(std::string word);
+	void UpdateWordCount(std::unordered_set<std::string>&& localWords);
 
 	std::mutex m_writeMutex;
 	std::unordered_set<std::string> m_wordsToCount;
